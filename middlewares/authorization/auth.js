@@ -13,9 +13,12 @@ const getAccessToRoute = (req,res,next)=>{
     jwt.verify(accessToken,JWT_SECRET_KEY,(err,decoded)=>{
         if(err)
         {
-            return next(new CustomError(err,401)); //hata buraya düşüyor.
+            return next(new CustomError("you are not authorized to access this route",401)); //hata buraya düşüyor.
         }
-        console.log(decoded);
+        req.user = {
+            id: decoded.id,
+            name : decoded.name
+        }
         next();
     });
 };
