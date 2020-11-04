@@ -6,7 +6,7 @@ const sendEmail = async (mailOptions) => {
         port: process.env.SMTP_PORT,
         auth: {
             user: "@gmail.com",
-            pass: "x"
+            pass: ""
           }
         });
 

@@ -1,7 +1,7 @@
 
 const CustomError = require("../../helpers/error/CustomError");
-const customError = require("../../helpers/error/CustomError");
 const customErrorHandler = (err,req,res,next)=>{
+    console.log(err);
 
     let customError = err;
 
@@ -12,6 +12,10 @@ const customErrorHandler = (err,req,res,next)=>{
     if(err.name === "ValidationError")
     {
         customError = new CustomError(err.message,400);
+    }
+    if(err.name ==="CastError")
+    {
+        customError = new CustomError("Please provide a valid id",400);
     }
     if(err.code === 11000)
     {
