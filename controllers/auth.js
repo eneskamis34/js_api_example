@@ -3,17 +3,12 @@ const CustomError = require("../helpers/error/CustomError");
 const asyncErrorWrapper = require("express-async-handler");
 const {sendJwtToClinet} = require("../helpers/authorization/tokenHelpers");
 const {validateUserInput,comparePassword} = require("../helpers/input/inputHelpers");
-const { request } = require("express");
-
+const sendEmail = require("../helpers/libraries/sendEmail");
 
 const register = asyncErrorWrapper( async (req, res, next) => {
     
     const {name,email,password,role} = req.body;    
-    // const name = "Aslı Ceylan";
-    // const email = "asli32@yandex.com";
-    // const password = "123";
 
-        //async-await
         const user = await User.create({
             name,
             email,
@@ -23,16 +18,6 @@ const register = asyncErrorWrapper( async (req, res, next) => {
 
         sendJwtToClinet(user,res);
 
-        //Buranın Yerine authorization kısmını kullanıyoruz
-        // const token = user.generateJwtFromUser();
-        // console.log(token);
-    
-        // res
-        // .status(200)
-        // .json({
-        //     success:true,
-        //     data : user
-        // });
 });
 
 const login = asyncErrorWrapper( async (req, res, next) => {
@@ -75,12 +60,62 @@ const getUser = (req,res,next)=>{
 
 const imageUpload = asyncErrorWrapper(async(req,res,next)=>{
     //ımage upload success
-
+    const user = await User.findByIdAndUpdate(req.user.id,{
+        "profile_image":req.savedProfileImage
+    },{
+        new: true,
+        runValidators:true
+    });
     res.status(200)
     .json({
         succes:true,
-        message:"Image upload succesfull"
+        message:"Image upload succesfull",
+        data: user
     });
+});
+
+//forgot password
+const forgotPassword = asyncErrorWrapper(async(req,res,next)=>{
+    const resetEmail = req.body.email;
+
+    const user = await User.findOne({email:resetEmail});
+    if(!user)
+    {
+        return next(new CustomError("There isnt user with that email",400));
+    }
+    const resetPasswordToken = user.getResetPasswordTokenFromUser();
+
+    await user.save();
+
+    const resetPasswordUrl = `http://localhost:5000/api/v1/auth/resetPassword?resetPasswordToken=${resetPasswordToken}`;
+    const emailTemplate = `
+    <h3>Reset Your Password</h3>
+    <p>This <a href = '${resetPasswordUrl}' target = '_blank'>link</a>  will expire in 1 hour</p>
+    
+    `;
+
+    try{
+        await sendEmail({
+            from:process.env.SMPT_EMAIL,
+            to: resetEmail,
+            subject:"Reset Your Password",
+            html: emailTemplate
+        });
+        return res.status(200).json({
+            succes:true,
+            message:"Tokent Sent Your Email",
+            data:user
+        });
+    }
+    catch(err)
+    {
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save();
+        return next(new CustomError("Email could not be sent"),500);
+    }
+
 });
 
 module.exports = {
@@ -88,5 +123,6 @@ module.exports = {
     getUser,
     login,
     logout,
-    imageUpload
+    imageUpload,
+    forgotPassword
 }

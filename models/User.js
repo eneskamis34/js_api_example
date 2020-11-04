@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const { reset } = require("nodemon");
 const Schema = mongoose.Schema;
 const UserSchema = new Schema({
     name : {
@@ -75,6 +77,19 @@ UserSchema.methods.generateJwtFromUser = function()
     return token;
 };
 
+
+//reset password
+UserSchema.methods.getResetPasswordTokenFromUser = function(){
+    const randomHexString = crypto.randomBytes(15).toString("hex");
+    const {RESET_PASSWORD_EXPIRE} = process.env;
+    const resetPasswordToken = crypto
+    .createHash("SHA256")
+    .update(randomHexString)
+    .digest("hex");
+    this.resetPasswordToken = resetPasswordToken;
+    this.resetPasswordExpire = Date.now() + parseInt(RESET_PASSWORD_EXPIRE);
+    return resetPasswordToken;
+};
 
 
 //Pre Hooks

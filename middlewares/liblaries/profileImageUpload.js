@@ -20,10 +20,6 @@ const fileFilter = (req,file,cb)=>{
     if(!allowedMimeType.includes(file.mimetype)){
         return cb(new CustomError("please provide a valid image file",400),false);
     }
-    elseif(file.fileSize === 0)
-    {
-        return cb(new CustomError("Please select a image",400),false);
-    }
     return cb(null,true);
 };
 
