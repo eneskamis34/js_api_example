@@ -110,6 +110,12 @@ UserSchema.pre("save",function(next){
     });
 });
 
+UserSchema.post("remove",async function(){
+    await Question.deleteMany({
+        user: this._id
+    });
+});
+
 module.exports = mongoose.model("User",UserSchema);
 //users collection oluşacak
 
