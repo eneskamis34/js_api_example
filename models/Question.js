@@ -35,6 +35,14 @@ const QuestionSchema = new Schema({
             ref: "User"
         }
     ],
+    likeCount:{
+        type:Number,
+        default:0
+    },
+    answerCount:{
+        type:Number,
+        default:0
+    },
     answers: [
         {
             type: mongoose.Schema.ObjectId,

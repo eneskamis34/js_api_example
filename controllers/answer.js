@@ -2,6 +2,7 @@ const Question = require("../models/Question");
 const Answer = require("../models/Answer");
 const CustomError = require("../helpers/error/CustomError");
 const asyncErrorWrapper = require("express-async-handler");
+const question = require("./question");
 
 
 
@@ -118,7 +119,7 @@ const deleteAnswer = asyncErrorWrapper(async (req,res,next) => {
     const {question_id,answer_id} = req.params;
 
     const answer = await Answer.findById(answer_id);
-
+    question.answerCount = question.answers.length;
     await answer.remove();
 
     res.status(200)
